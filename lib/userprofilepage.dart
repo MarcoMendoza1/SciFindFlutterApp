@@ -88,7 +88,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           IconButton(
             icon: Icon(Icons.brightness_5, color: Colors.white),
             onPressed: () {
-              // Aquí podrías implementar el cambio de tema
             },
           ),
         ],

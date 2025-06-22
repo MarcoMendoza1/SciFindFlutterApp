@@ -81,7 +81,6 @@ class _RegisterLoginScreenState extends State<RegisterLoginScreen> {
                         );
                       }
                     } else {
-                      // Puedes agregar aquí la lógica de registro si decides implementarlo más adelante
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text('Registro aún no implementado.'),

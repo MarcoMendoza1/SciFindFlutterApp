@@ -26,7 +26,7 @@ class AppBarHeader extends StatelessWidget implements PreferredSizeWidget{
         IconButton(
           icon: Icon(Icons.brightness_5, color: Colors.white),
           onPressed: () {
-            // Aquí podrías implementar el cambio de tema
+            
           },
         ),
         Padding(
@@ -34,7 +34,7 @@ class AppBarHeader extends StatelessWidget implements PreferredSizeWidget{
           child: IconButton(
             icon: Icon(Icons.settings, color: Colors.white),
             onPressed: () {
-              // Aquí podrías implementar el cambio de tema
+              
             },
           ),
         ),

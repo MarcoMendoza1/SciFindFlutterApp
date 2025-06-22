@@ -116,7 +116,6 @@ class SearchScreen extends StatelessWidget {
   Widget _topicLink(String text) {
     return GestureDetector(
       onTap: () {
-        // Aquí puedes manejar la navegación a artículos relacionados
       },
       child: Text(
         text,

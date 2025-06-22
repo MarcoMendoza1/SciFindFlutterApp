@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   static const _loginUrl = 'api/Authentication/Login';
-  static const baseUrl = 'http://localhost:5003/';
+  static const baseUrl = 'http://192.168.0.165:5003/';
 
   static Future<bool> login(String email, String password) async {
     final body = {

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ffi';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:scifind/context/auth_service.dart';
@@ -17,6 +18,7 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
   Map<String, dynamic>? article;
   bool isLoading = true;
   bool isFavorite = false;
+  Map<String, dynamic>? userArticle;
   Map<String, dynamic>? user;
 
   @override
@@ -58,7 +60,7 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
 
   Future<void> saveVisitToHistory() async {
     final encryptedId = CryptoHelper.encryptArticleId(article!['id'].toString(), article!['title']);
-    final url = Uri.parse("${AuthService.baseUrl}/UserData/history");
+    final url = Uri.parse("${AuthService.baseUrl}api/UserData/history");
 
     final body = jsonEncode({
       "userId": user!['id'],
@@ -74,9 +76,9 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
   }
 
   Future<void> checkIfFavorite() async {
-    final encryptedId = CryptoHelper.encryptArticleId(article!['id'].toString(), article!['title']);
+    /* final encryptedId = CryptoHelper.encryptArticleId(article!['id'].toString(), article!['title']);
     final safeId = Uri.encodeComponent(encryptedId);
-    final url = Uri.parse("${AuthService.baseUrl}/UserData/favorites/${user!['id']}/check/$safeId");
+    final url = Uri.parse("${AuthService.baseUrl}api/UserData/favorites/${user!['id']}/check/$safeId");
 
     try {
       final response = await http.get(url);
@@ -87,45 +89,49 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
       }
     } catch (e) {
       print("❌ Error al verificar favorito: $e");
-    }
+    } */
+
+    final encryptedId = CryptoHelper.encryptArticleId(article!['id'].toString(), article!['title']);
+
+    final historyRes = await http.get(
+      Uri.parse("${AuthService.baseUrl}api/UserData/history/${user!['id']}"),
+    );
+
+    final history = jsonDecode(historyRes.body);
+    final existing = history.firstWhere(
+      (item) => item['articleId'] == encryptedId,
+      orElse: () => null,
+    );
+
+    userArticle = existing;
+
+   if(userArticle!["isFavorite"]){
+    setState(() {
+      isFavorite = true;
+      isLoading = false;
+    });
+   }else{
+    setState(() {
+      isFavorite = false;
+      isLoading = false;
+    });
+   }
   }
 
   Future<void> toggleFavorite() async {
     final encryptedId = CryptoHelper.encryptArticleId(article!['id'].toString(), article!['title']);
+    final safeId = Uri.encodeComponent(encryptedId);
 
     try {
-      final historyRes = await http.get(
-        Uri.parse("${AuthService.baseUrl}/UserData/history/${user!['id']}"),
-      );
 
-      final history = jsonDecode(historyRes.body);
-      final existing = history.firstWhere(
-        (item) => item['articleId'] == encryptedId,
-        orElse: () => null,
+      var newFav = {...userArticle!, "isFavorite": !isFavorite};
+      print(userArticle);
+      print(newFav);
+      final response = await http.put(
+        Uri.parse("${AuthService.baseUrl}api/UserData/history/${userArticle!['id']}"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(newFav),
       );
-
-      if (existing != null) {
-        // Update existing history entry
-        var newFav = {...existing, "isFavorite": !isFavorite};
-        print(existing);
-        print(newFav);
-        await http.put(
-          Uri.parse("${AuthService.baseUrl}/UserData/history/${existing['id']}"),
-          headers: {"Content-Type": "application/json"},
-          body: jsonEncode(newFav),
-        );
-      } else {
-        // Create new history entry
-        await http.post(
-          Uri.parse("${AuthService.baseUrl}/UserData/history"),
-          headers: {"Content-Type": "application/json"},
-          body: jsonEncode({
-            "userId": user!['id'],
-            "articleId": encryptedId,
-            "isFavorite": true,
-          }),
-        );
-      }
 
       setState(() {
         isFavorite = !isFavorite;
