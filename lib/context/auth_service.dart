@@ -5,7 +5,23 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   static const _loginUrl = 'api/Authentication/Login';
-  static const baseUrl = 'http://192.168.0.165:5003/';
+  static String _baseUrl = 'http://192.168.0.165:5003/';
+
+  static String get baseUrl => _baseUrl;
+
+  static Future<void> setBaseUrl(String url) async {
+    final prefs = await SharedPreferences.getInstance();
+    _baseUrl = "http://$url:5003/";
+    await prefs.setString("baseUrl", "http://$url:5003/");
+  }
+
+  static Future<void> loadBaseUrl() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString("baseUrl");
+    if (saved != null) {
+      _baseUrl = saved;
+    }
+  }
 
   static Future<bool> login(String email, String password) async {
     final body = {

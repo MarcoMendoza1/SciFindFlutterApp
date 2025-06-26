@@ -69,29 +69,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.purple[800],
-        title: Row(
-          children: [
-            Icon(Icons.search, color: Colors.white),
-            SizedBox(width: 8),
-            Text(
-              'SciFind',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.brightness_5, color: Colors.white),
-            onPressed: () {
-            },
-          ),
-        ],
-      ),
       body: Scaffold(
         body: LayoutBuilder(
           builder: (context, constraints) {

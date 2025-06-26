@@ -5,14 +5,26 @@ import 'package:scifind/app_bar_header.dart';
 import 'package:scifind/article_detail_page.dart';
 import 'package:scifind/context/auth_service.dart';
 
-class SearchResultsScreen extends StatefulWidget {
+class SearchResultsScreen extends StatelessWidget {
   const SearchResultsScreen({super.key});
 
   @override
-  State<SearchResultsScreen> createState() => _SearchResultsScreenState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SearchResultsSection(),
+    );
+  }
+  
 }
 
-class _SearchResultsScreenState extends State<SearchResultsScreen> {
+class SearchResultsSection extends StatefulWidget {
+  const SearchResultsSection({super.key});
+
+  @override
+  State<SearchResultsSection> createState() => _SearchResultsSectionState();
+}
+
+class _SearchResultsSectionState extends State<SearchResultsSection> {
   final TextEditingController topicController = TextEditingController();
   final TextEditingController authorController = TextEditingController();
 
@@ -68,80 +80,78 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBarHeader(),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          bool isSmallScreen = constraints.maxWidth < 600;
+    return 
+      LayoutBuilder(
+      builder: (context, constraints) {
+        bool isSmallScreen = constraints.maxWidth < 600;
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Mostrando $_totalResults publicaciones',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Mostrando $_totalResults publicaciones',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
-                SizedBox(height: 20),
-                isSmallScreen
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: _buildSearchFields(isSmallScreen),
-                      )
-                    : Row(
-                        children: _buildSearchFields(isSmallScreen),
+              ),
+              SizedBox(height: 20),
+              isSmallScreen
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: _buildSearchFields(isSmallScreen),
+                    )
+                  : Row(
+                      children: _buildSearchFields(isSmallScreen),
+                    ),
+              SizedBox(height: 40),
+              Divider(color: Colors.grey[600]),
+              SizedBox(height: 20),
+              Padding(
+                padding: EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (_results.isNotEmpty) ...[
+                      Text(
+                        "Resultados",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orange,
+                        ),
                       ),
-                SizedBox(height: 40),
-                Divider(color: Colors.grey[600]),
-                SizedBox(height: 20),
-                Padding(
-                  padding: EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (_results.isNotEmpty) ...[
-                        Text(
-                          "Resultados",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.orange,
+                      SizedBox(height: 10),
+                      for (var article in _results) _buildArticleItem(article),
+                      if (_results.isNotEmpty && _results.length < _totalResults) ...[
+                        SizedBox(height: 20),
+                        Center(
+                          child: ElevatedButton(
+                            onPressed: () => _searchArticles(loadMore: true),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.deepPurple,
+                            ),
+                            child: _isLoading
+                                ? SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                  )
+                                : Text('Cargar más'),
                           ),
                         ),
-                        SizedBox(height: 10),
-                        for (var article in _results) _buildArticleItem(article),
-                        if (_results.isNotEmpty && _results.length < _totalResults) ...[
-                          SizedBox(height: 20),
-                          Center(
-                            child: ElevatedButton(
-                              onPressed: () => _searchArticles(loadMore: true),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.deepPurple,
-                              ),
-                              child: _isLoading
-                                  ? SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                                    )
-                                  : Text('Cargar más'),
-                            ),
-                          ),
-                        ],
                       ],
                     ],
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          );
-        },
-      ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

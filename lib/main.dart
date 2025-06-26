@@ -1,107 +1,89 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:scifind/app_bar_header.dart';
+import 'package:scifind/context/auth_service.dart';
+import 'package:scifind/context/session_model.dart';
 import 'package:scifind/login_register_page.dart';
+import 'package:scifind/recomended_section.dart';
 import 'package:scifind/searchpage.dart';
 import 'package:scifind/userprofilepage.dart';
-import 'package:scifind/context/auth_service.dart';
 
-void main() {
-  runApp(SciFindApp());
-}
-
-/* class SciFindApp extends StatelessWidget {
-  const SciFindApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      initialRoute: '/',
-      routes: {
-        '/': (context) => SearchScreen(), // o SearchScreen
-        '/results': (context) => SearchResultsScreen(), // <-- esta es la ruta que falta
-      },
-      title: 'SciFind',
-      theme: ThemeData.dark().copyWith(
-        primaryColor: Colors.purple[800],
-        scaffoldBackgroundColor: Colors.black,
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(),
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await AuthService.loadBaseUrl();
+  
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => SesionModel()..verificarSesion()),
+        ChangeNotifierProvider(create: (_) => NavigationModel()),
+      ],
+      child: MaterialApp(
+        title: 'SciFind',
+        theme: ThemeData.dark().copyWith(
+          primaryColor: Colors.purple[800],
+          scaffoldBackgroundColor: Colors.black,
+        ),
+        home: Scaffold(
+          appBar: AppBarHeader(),
+          body: SciFindApp()
         ),
       ),
-    );
-  }
-} */
-
-class SciFindApp extends StatefulWidget {
-  const SciFindApp({super.key});
-
-  @override
-  State<SciFindApp> createState() => _SciFindAppState();
+    ),
+  );
 }
 
-class _SciFindAppState extends State<SciFindApp> {
+class NavigationModel with ChangeNotifier {
   int _currentIndex = 0;
 
-  List<Widget> get _pages => [
-    SearchScreen(),
-    SearchResultsScreen(),
-    FutureBuilder<bool>(
-      future: AuthService.isLoggedIn(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return Center(child: CircularProgressIndicator());
-        }
+  int get currentIndex => _currentIndex;
 
-        return snapshot.data == true
-            ? UserProfileScreen()
-            : RegisterLoginScreen(
-                onLoginSuccess: () => setState(() => _currentIndex = 2),
-              );
-      },
-    )
-  ];
+  void updateIndex(int index) {
+    _currentIndex = index;
+    notifyListeners();
+  }
+}
 
-  @override
-  void initState() {
-    super.initState();
-    
+class SciFindApp extends StatelessWidget {
+  const SciFindApp({super.key});
+
+  List<Widget> _buildPages(BuildContext context) {
+    final sesion = Provider.of<SesionModel>(context);
+    return [
+      SearchScreen(),
+      SearchResultsScreen(),
+      sesion.estaAutenticado
+          ? UserProfileScreen()
+          : RegisterLoginScreen(),
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'SciFind',
-      theme: ThemeData.dark().copyWith(
-        primaryColor: Colors.purple[800],
-        scaffoldBackgroundColor: Colors.black,
-      ),
-      home: Scaffold(
-        body: _pages[_currentIndex],
-        bottomNavigationBar: NavigationBar(
-          height: 60,
-          selectedIndex: _currentIndex,
-          onDestinationSelected: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          destinations: [
-            NavigationDestination(
-              icon: Icon(Icons.home),
-              label: 'Inicio',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.article),
-              label: 'Artículos',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.account_circle),
-              label: 'Artículos',
-            ),
-          ],
-        ),
+    final navModel = Provider.of<NavigationModel>(context);
+    
+    return Scaffold(
+      body: _buildPages(context)[navModel.currentIndex],
+      bottomNavigationBar: NavigationBar(
+        height: 60,
+        selectedIndex: navModel.currentIndex,
+        onDestinationSelected: (index) {
+          navModel.updateIndex(index);
+        },
+        destinations: [
+          NavigationDestination(
+            icon: Icon(Icons.home),
+            label: 'Inicio',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.article),
+            label: 'Artículos',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.account_circle),
+            label: 'Artículos',
+          ),
+        ],
       ),
     );
   }
@@ -147,7 +129,6 @@ class SearchScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBarHeader(),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -254,6 +235,7 @@ class SearchScreen extends StatelessWidget {
                 'Playing Smart - Artificial Intelligence in Computer Games',
                 'Anderson, 2003 – CORE.ac.uk',
               ),
+              RecommendedSection(),
             ],
           ),
         ),

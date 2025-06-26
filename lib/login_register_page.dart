@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:scifind/app_bar_header.dart';
-import 'package:scifind/context/auth_service.dart';
+import 'package:provider/provider.dart';
+import 'package:scifind/context/session_model.dart';
 
 
 class RegisterLoginScreen extends StatefulWidget {
@@ -23,9 +23,10 @@ class _RegisterLoginScreenState extends State<RegisterLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final sesion = Provider.of<SesionModel>(context);
+    
     return Scaffold(
       backgroundColor: Colors.black87,
-      appBar: AppBarHeader(),
       body: Center(
         child: SingleChildScrollView(
           child: Container(
@@ -65,14 +66,9 @@ class _RegisterLoginScreenState extends State<RegisterLoginScreen> {
                       final email = emailController.text.trim();
                       final password = passwordController.text;
 
-                      final success = await AuthService.login(email, password);
+                      final success = await sesion.iniciarSesion(email, password);
 
-                      if (success) {
-                        // Navega a la pantalla principal
-                        if (widget.onLoginSuccess != null) {
-                          widget.onLoginSuccess!();
-                        }
-                      } else {
+                      if (!success) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Correo o contraseña incorrectos'),
